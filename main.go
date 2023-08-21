@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -27,6 +30,7 @@ var total int64 = 0
 var logFormat = "text"
 
 type request struct {
+	Wire          []byte      `json:"wire"`
 	Body          []byte      `json:"body"`
 	Fragment      string      `json:"fragment"`
 	Headers       http.Header `json:"headers"`
@@ -49,11 +53,15 @@ func newRequest(r *http.Request) *request {
 	req.ReceivedAt = time.Now().Unix()
 	req.Headers = r.Header
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
+	// Read the body into both Wire and Body
+	wireBuffer := &bytes.Buffer{}
+	bodyBuffer := &bytes.Buffer{}
+	r.Body = ioutil.NopCloser(io.TeeReader(r.Body, bodyBuffer))
+	if err := r.Write(wireBuffer); err != nil {
 		req.Errors = append(req.Errors, err.Error())
 	}
-	req.Body = body
+	req.Body = bodyBuffer.Bytes()
+	req.Wire = wireBuffer.Bytes()
 
 	queryParams, err := url.ParseQuery(req.Query)
 	if err != nil {
@@ -69,29 +77,6 @@ func toJSON(r *http.Request) ([]byte, error) {
 	return json.Marshal(req)
 }
 
-func prettyPrint(r *http.Request) (out string) {
-	query := r.URL.RawQuery
-	if query != "" {
-		query = "?" + query
-	}
-	fragment := r.URL.RawFragment
-	if fragment != "" {
-		fragment = "#" + fragment
-	}
-	out += fmt.Sprintf("Total requests: %d\n", total)
-	out += fmt.Sprintf("Received: %s\n\n", time.Now().Format(time.UnixDate))
-	out += fmt.Sprintf("%s %s%s#%s\n", r.Method, r.URL.Path, query, fragment)
-	for key, values := range r.Header {
-		for _, value := range values {
-			out += fmt.Sprintf("%s: %s\n", key, value)
-		}
-	}
-	out += fmt.Sprintf("\n")
-	body, _ := io.ReadAll(r.Body)
-	out += string(body)
-	return
-}
-
 func handler(w http.ResponseWriter, r *http.Request) {
 	total++
 	switch logFormat {
@@ -103,9 +88,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func printText(r *http.Request) {
-	fmt.Println(sep)
-	fmt.Println(prettyPrint(r))
-	fmt.Println(sep)
+	logSeparator()
+	r.Write(os.Stdout)
+	fmt.Println()
 }
 
 func printJSON(r *http.Request) {
@@ -118,8 +103,34 @@ func printBanner() {
 	if logFormat == "json" {
 		return
 	}
-	fmt.Println(banner)
-	fmt.Println(sep)
+	fmt.Print(banner)
+	fmt.Println()
+	printSeparatorFullLine("+")
+}
+
+func logSeparator() {
+	t := time.Now().Format(time.UnixDate)
+	c := fmt.Sprintf("Total requests: %d", total)
+	printSeparatorFullLine("*")
+	printSeparatorMessages("-", []string{t, c})
+}
+
+func printSeparatorFullLine(char string) {
+	printSeparatorMessages(char, []string{""})
+}
+
+func printSeparatorMessages(sep string, messages []string) {
+	width := 80
+	prefix := 3
+	for _, m := range messages {
+		if len(m) == 0 {
+			fmt.Println(strings.Repeat(sep, width))
+			continue
+		}
+		// prefix, space, message, space, suffix
+		suffixLength := width - 3 - 1 - len(m) - 1
+		fmt.Printf("%s %s %s\n", strings.Repeat(sep, prefix), m, strings.Repeat(sep, suffixLength))
+	}
 }
 
 func main() {
