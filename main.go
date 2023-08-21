@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 )
 
 const defaultBanner = `
@@ -15,35 +14,16 @@ const defaultBanner = `
  |_| |_|_|\___||___/
 `
 
-type config struct {
-	LogFormat string
-}
-
-func loggerFromConfig(c *config) Logger {
-	switch c.LogFormat {
-	case "json":
-		return NewJSONLogger()
-	default:
-		return NewDefaultLogger()
-	}
-}
-
-func (c *config) Init() {
-	c.LogFormat = os.Getenv("FLIES_LOG_FORMAT")
-}
-
-// handler calls WriteRequest on the Logger
-func handler(l Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l.WriteRequest(r)
-	}
-}
-
 func main() {
+	// Initialize config
 	c := &config{}
 	c.Init()
-	l := loggerFromConfig(c)
+
+	// Initialize logger
+	l := c.GetLogger()
 	l.Init()
-	http.HandleFunc("/", handler(l))
-	fmt.Println(http.ListenAndServe(":8080", nil))
+
+	// Start server
+	http.HandleFunc("/", Handler(l))
+	fmt.Println(http.ListenAndServe(c.GetAddr(), nil))
 }

@@ -38,18 +38,15 @@ func (l *JSONLogger) WriteRequest(r *http.Request) error {
 }
 
 func writeRequestJSON(l *JSONLogger, r *http.Request) error {
-	b, _ := l.toJSON(r)
+	req := newRequest(r, l.getTimestamp())
+	req.TotalRequests = l.TotalRequests
+	b, _ := json.Marshal(req)
 	l.Write(b)
 	l.writeNewline()
 	return nil
 }
 
-func (l *JSONLogger) toJSON(r *http.Request) ([]byte, error) {
-	req := newRequest(r, l.getTimestamp())
-	req.TotalRequests = l.TotalRequests
-	return json.Marshal(req)
-}
-
+// request is the JSON representation of a request
 type request struct {
 	Wire          []byte      `json:"wire"`
 	Body          []byte      `json:"body"`
@@ -83,6 +80,7 @@ func newRequest(r *http.Request, timestamp time.Time) *request {
 	req.Body = bodyBuffer.Bytes()
 	req.Wire = wireBuffer.Bytes()
 
+	// Parse query parameters
 	queryParams, err := url.ParseQuery(req.Query)
 	if err != nil {
 		req.Errors = append(req.Errors, err.Error())
