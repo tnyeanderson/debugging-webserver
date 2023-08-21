@@ -74,6 +74,21 @@ func ExampleFliesLogText() {
 	// this is a test body
 }
 
+func TestJSONWriteRequestOnePerLine(t *testing.T) {
+	l := NewJSONLogger()
+	testLoggerInit(&l.DefaultLogger)
+	req := newTestRequest()
+	out := &strings.Builder{}
+	l.Out = out
+	l.WriteRequest(req)
+	l.WriteRequest(req)
+	l.WriteRequest(req)
+
+	if strings.Count(out.String(), "\n") != 3 {
+		t.Fail()
+	}
+}
+
 func TestJSONWriteRequestIncrementsTotal(t *testing.T) {
 	l := NewJSONLogger()
 	testLoggerInit(&l.DefaultLogger)

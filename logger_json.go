@@ -40,6 +40,7 @@ func (l *JSONLogger) WriteRequest(r *http.Request) error {
 func writeRequestJSON(l *JSONLogger, r *http.Request) error {
 	b, _ := l.toJSON(r)
 	l.Write(b)
+	l.writeNewline()
 	return nil
 }
 
