@@ -12,24 +12,33 @@ import (
 
 type JSONLogger struct {
 	DefaultLogger
-	handlerFunc   func(*JSONLogger, http.ResponseWriter, *http.Request)
-	logBannerFunc func(*JSONLogger)
+	initFunc         func(*JSONLogger) error
+	writeRequestFunc func(*JSONLogger, *http.Request) error
 }
 
 func NewJSONLogger() (l *JSONLogger) {
 	d := NewDefaultLogger()
 	l = &JSONLogger{
-		DefaultLogger: *d,
-		handlerFunc:   handlerJSON,
-		logBannerFunc: func(j *JSONLogger) { return },
+		DefaultLogger:    *d,
+		initFunc:         func(j *JSONLogger) error { return nil },
+		writeRequestFunc: writeRequestJSON,
 	}
 	return
 }
 
-func handlerJSON(l *JSONLogger, w http.ResponseWriter, r *http.Request) {
-	l.TotalRequests++
+func (l *JSONLogger) Init() error {
+	return l.initFunc(l)
+}
+
+func (l *JSONLogger) WriteRequest(r *http.Request) error {
+	l.defaultLoggerWriteHook()
+	return l.writeRequestFunc(l, r)
+}
+
+func writeRequestJSON(l *JSONLogger, r *http.Request) error {
 	b, _ := l.toJSON(r)
 	l.Write(b)
+	return nil
 }
 
 func (l *JSONLogger) toJSON(r *http.Request) ([]byte, error) {

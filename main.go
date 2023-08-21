@@ -32,11 +32,18 @@ func (c *config) Init() {
 	c.LogFormat = os.Getenv("FLIES_LOG_FORMAT")
 }
 
+// handler calls WriteRequest on the Logger
+func handler(l Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		l.WriteRequest(r)
+	}
+}
+
 func main() {
 	c := &config{}
 	c.Init()
 	l := loggerFromConfig(c)
 	l.Init()
-	http.HandleFunc("/", l.Handler())
+	http.HandleFunc("/", handler(l))
 	fmt.Println(http.ListenAndServe(":8080", nil))
 }
