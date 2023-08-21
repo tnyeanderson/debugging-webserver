@@ -11,44 +11,51 @@ import (
 
 type Logger interface {
 	io.Writer
-	LogBanner()
-	LogSeparator()
+	Init() error
+	WritePrefix() error
+	WriteSuffix() error
 	Handler() http.HandlerFunc
 }
 
 type DefaultLogger struct {
-	Width         int
-	Out           io.Writer
-	TotalRequests int64
-	HandlerFunc   func(*DefaultLogger, http.ResponseWriter, *http.Request)
-	LogBannerFunc func(*DefaultLogger)
-	GetTimestamp  func() time.Time
+	Width           int
+	Out             io.Writer
+	TotalRequests   int64
+	initFunc        func(*DefaultLogger) error
+	handlerFunc     func(*DefaultLogger, http.ResponseWriter, *http.Request)
+	writePrefixFunc func(*DefaultLogger) error
+	writeSuffixFunc func(*DefaultLogger) error
+	getTimestamp    func() time.Time
 }
 
 func NewDefaultLogger() *DefaultLogger {
 	return &DefaultLogger{
-		Out:           os.Stdout,
-		Width:         80,
-		HandlerFunc:   handlerText,
-		LogBannerFunc: logBanner,
-		GetTimestamp:  time.Now,
+		Out:             os.Stdout,
+		Width:           80,
+		handlerFunc:     handlerText,
+		initFunc:        logBanner,
+		writePrefixFunc: logSeparator,
+		writeSuffixFunc: func(d *DefaultLogger) error { return nil },
+		getTimestamp:    time.Now,
 	}
 }
 
 func (l *DefaultLogger) Handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		l.HandlerFunc(l, w, r)
+		l.handlerFunc(l, w, r)
 	}
 }
 
-func (l *DefaultLogger) LogBanner() {
-	l.LogBannerFunc(l)
+func (l *DefaultLogger) Init() error {
+	return l.initFunc(l)
 }
 
-func (l *DefaultLogger) LogSeparator() {
-	l.logSeparatorLine('*')
-	l.logSeparatorMessage('-', l.GetTimestamp().Format(time.UnixDate))
-	l.logSeparatorMessage('-', fmt.Sprintf("Total requests: %d", l.TotalRequests))
+func (l *DefaultLogger) WritePrefix() error {
+	return l.writePrefixFunc(l)
+}
+
+func (l *DefaultLogger) WriteSuffix() error {
+	return l.writeSuffixFunc(l)
 }
 
 func (l *DefaultLogger) Write(b []byte) (int, error) {
@@ -57,15 +64,23 @@ func (l *DefaultLogger) Write(b []byte) (int, error) {
 
 func handlerText(l *DefaultLogger, w http.ResponseWriter, r *http.Request) {
 	l.TotalRequests++
-	l.LogSeparator()
+	logSeparator(l)
 	r.Write(l)
 	l.logNewline()
 }
 
-func logBanner(l *DefaultLogger) {
+func logBanner(l *DefaultLogger) error {
 	l.Write([]byte(defaultBanner))
 	l.logNewline()
 	l.logSeparatorLine('+')
+	return nil
+}
+
+func logSeparator(l *DefaultLogger) error {
+	l.logSeparatorLine('*')
+	l.logSeparatorMessage('-', l.getTimestamp().Format(time.UnixDate))
+	l.logSeparatorMessage('-', fmt.Sprintf("Total requests: %d", l.TotalRequests))
+	return nil
 }
 
 func (l *DefaultLogger) logNewline() {

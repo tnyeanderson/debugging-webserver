@@ -36,7 +36,7 @@ func main() {
 	c := &config{}
 	c.Init()
 	l := loggerFromConfig(c)
-	l.LogBanner()
+	l.Init()
 	http.HandleFunc("/", l.Handler())
 	fmt.Println(http.ListenAndServe(":8080", nil))
 }
