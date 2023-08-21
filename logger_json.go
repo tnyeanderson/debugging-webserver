@@ -10,12 +10,14 @@ import (
 	"time"
 )
 
+// JSONLogger logs the result in JSON format
 type JSONLogger struct {
 	DefaultLogger
 	initFunc         func(*JSONLogger) error
 	writeRequestFunc func(*JSONLogger, *http.Request) error
 }
 
+// NewJSONLogger initializes and returns a JSONLogger.
 func NewJSONLogger() (l *JSONLogger) {
 	d := NewDefaultLogger()
 	l = &JSONLogger{

@@ -9,21 +9,38 @@ import (
 	"time"
 )
 
+// Logger is an interface for logging HTTP requests.
 type Logger interface {
 	io.Writer
+
+	// Init prepares a log destination, usually by displaying a banner.
 	Init() error
+
+	// WriteRequest converts an http.Request into the Logger's specified format
+	// and calls Write with the result.
 	WriteRequest(*http.Request) error
 }
 
+// DefaultLogger logs the result in wire format to Out, with annotated
+// separators between the requests.
 type DefaultLogger struct {
-	Width            int
-	Out              io.Writer
-	TotalRequests    int64
+	// Width is the amount of columns used for separator lines. Usually 80 for
+	// VT100 reasons.
+	Width int
+
+	// Out is the destination for the log, usually stdout.
+	Out io.Writer
+
+	// TotalRequests is an Incrementing counter of times WriteRequest has been
+	// called.
+	TotalRequests int64
+
 	initFunc         func(*DefaultLogger) error
 	writeRequestFunc func(*DefaultLogger, *http.Request) error
 	getTimestamp     func() time.Time
 }
 
+// NewDefaultLogger initializes and returns a DefaultLogger.
 func NewDefaultLogger() *DefaultLogger {
 	return &DefaultLogger{
 		Out:              os.Stdout,
