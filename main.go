@@ -24,7 +24,7 @@ func getLogger(logFormat string) Logger {
 
 func main() {
 	// Initialize server
-	s := &DefaultServer{}
+	s := &defaultServer{}
 	s.Init()
 	s.Logger = s.GetLogger()
 	s.Logger.Init()
