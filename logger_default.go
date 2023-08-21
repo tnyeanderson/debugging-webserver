@@ -55,7 +55,6 @@ func (l *DefaultLogger) Write(b []byte) (int, error) {
 func writeRequestText(l *DefaultLogger, r *http.Request) error {
 	writeSeparator(l)
 	r.Write(l)
-	l.writeNewline()
 	return nil
 }
 
@@ -67,6 +66,7 @@ func writeBanner(l *DefaultLogger) error {
 }
 
 func writeSeparator(l *DefaultLogger) error {
+	l.writeNewline()
 	l.writeSeparatorLine('*')
 	l.writeSeparatorMessage('-', l.getTimestamp().Format(time.UnixDate))
 	l.writeSeparatorMessage('-', fmt.Sprintf("Total requests: %d", l.TotalRequests))

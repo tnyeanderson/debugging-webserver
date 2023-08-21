@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 )
 
 const defaultBanner = `
@@ -14,16 +13,20 @@ const defaultBanner = `
  |_| |_|_|\___||___/
 `
 
+func getLogger(logFormat string) Logger {
+	switch logFormat {
+	case "json":
+		return NewJSONLogger()
+	default:
+		return NewDefaultLogger()
+	}
+}
+
 func main() {
-	// Initialize config
-	c := &config{}
-	c.Init()
-
-	// Initialize logger
-	l := c.GetLogger()
-	l.Init()
-
-	// Start server
-	http.HandleFunc("/", Handler(l))
-	fmt.Println(http.ListenAndServe(c.GetAddr(), nil))
+	// Initialize server
+	s := &DefaultServer{}
+	s.Init()
+	s.Logger = s.GetLogger()
+	s.Logger.Init()
+	fmt.Println(s.Listen())
 }
