@@ -14,15 +14,6 @@ const defaultBanner = `
  |_| |_|_|\___||___/
 `
 
-func getLogger(logFormat string) Logger {
-	switch logFormat {
-	case "json":
-		return NewJSONLogger()
-	default:
-		return NewDefaultLogger()
-	}
-}
-
 func getServer(protocol string) Server {
 	switch protocol {
 	case "tcp":

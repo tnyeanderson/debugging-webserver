@@ -13,31 +13,22 @@ import (
 // JSONLogger logs the result in JSON format
 type JSONLogger struct {
 	DefaultLogger
-	initFunc         func(*JSONLogger) error
-	writeRequestFunc func(*JSONLogger, *http.Request) error
 }
 
-// NewJSONLogger initializes and returns a JSONLogger.
-func NewJSONLogger() (l *JSONLogger) {
-	d := NewDefaultLogger()
-	l = &JSONLogger{
-		DefaultLogger:    *d,
-		initFunc:         func(j *JSONLogger) error { return nil },
-		writeRequestFunc: writeRequestJSON,
+func NewJSONLogger() *JSONLogger {
+	return &JSONLogger{
+		DefaultLogger: *NewDefaultLogger(),
 	}
-	return
 }
 
-func (l *JSONLogger) Init() error {
-	return l.initFunc(l)
-}
+func (l *JSONLogger) Init() error { return nil }
 
 func (l *JSONLogger) WriteRequest(r *http.Request) error {
 	l.defaultLoggerWriteHook()
-	return l.writeRequestFunc(l, r)
+	return l.writeRequestJSON(r)
 }
 
-func writeRequestJSON(l *JSONLogger, r *http.Request) error {
+func (l *JSONLogger) writeRequestJSON(r *http.Request) error {
 	req := newRequest(r, l.getTimestamp())
 	req.TotalRequests = l.TotalRequests
 	b, _ := json.Marshal(req)

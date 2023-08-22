@@ -9,6 +9,7 @@ import (
 func ExampleFliesLogJSON() {
 	l := NewJSONLogger()
 	testLoggerInit(&l.DefaultLogger)
+	l.Init()
 	req := newTestRequest()
 	l.WriteRequest(req)
 
@@ -19,6 +20,7 @@ func ExampleFliesLogJSON() {
 func TestJSONWriteRequestOnePerLine(t *testing.T) {
 	l := NewJSONLogger()
 	testLoggerInit(&l.DefaultLogger)
+	l.Init()
 	req := newTestRequest()
 	out := &strings.Builder{}
 	l.Out = out
@@ -31,9 +33,10 @@ func TestJSONWriteRequestOnePerLine(t *testing.T) {
 	}
 }
 
-func TestJSONWriteRequestIncrementsTotal(t *testing.T) {
+func TestJSONLoggerRequestIncrementsTotal(t *testing.T) {
 	l := NewJSONLogger()
 	testLoggerInit(&l.DefaultLogger)
+	l.Init()
 	req := newTestRequest()
 	l.Out = io.Discard
 	l.WriteRequest(req)
