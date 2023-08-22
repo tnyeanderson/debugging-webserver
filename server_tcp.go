@@ -7,24 +7,31 @@ import (
 	"os"
 )
 
-type tcpServer struct {
-	defaultServer
+const (
+	defaultLogFormat = "pretty"
+	defaultPort      = "8080"
+)
+
+type TCPServer struct {
+	LogFormat string
+	Logger    Logger
+	Port      string
 }
 
-func (s *tcpServer) Init() {
+func (s *TCPServer) Init() {
 	s.LogFormat = os.Getenv("FLIES_LOG_FORMAT")
 	s.Port = os.Getenv("FLIES_PORT")
 	s.Logger = s.GetLogger()
 }
 
-func (s *tcpServer) GetLogger() Logger {
+func (s *TCPServer) GetLogger() Logger {
 	if s.Logger != nil {
 		return s.Logger
 	}
 	return NewDefaultLogger()
 }
 
-func (s *tcpServer) Listen() error {
+func (s *TCPServer) Listen() error {
 	l, err := net.Listen("tcp", s.getAddr())
 	if err != nil {
 		log.Fatal(err)
@@ -47,4 +54,12 @@ func (s *tcpServer) Listen() error {
 		}(conn)
 	}
 	return err
+}
+
+func (s *TCPServer) getAddr() string {
+	port := s.Port
+	if port == "" {
+		port = defaultPort
+	}
+	return net.JoinHostPort("", port)
 }

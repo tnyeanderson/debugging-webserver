@@ -17,9 +17,9 @@ const defaultBanner = `
 func getServer(protocol string) Server {
 	switch protocol {
 	case "tcp":
-		return &tcpServer{}
+		return &TCPServer{}
 	default:
-		return &defaultServer{}
+		return &HTTPServer{}
 	}
 }
 
