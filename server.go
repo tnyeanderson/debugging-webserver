@@ -1,5 +1,6 @@
 package main
 
+// Server listens for HTTP requests and logs them with a Logger.
 type Server interface {
 	// Init initializes a server, perhaps by reading a config file, environment
 	// variables, or prompting the user for information.

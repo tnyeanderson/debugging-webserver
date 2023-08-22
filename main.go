@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 )
 
 const defaultBanner = `
@@ -22,11 +23,19 @@ func getLogger(logFormat string) Logger {
 	}
 }
 
+func getServer(protocol string) Server {
+	switch protocol {
+	case "tcp":
+		return &tcpServer{}
+	default:
+		return &defaultServer{}
+	}
+}
+
 func main() {
-	// Initialize server
-	s := &defaultServer{}
+	protocol := os.Getenv("FLIES_PROTOCOL")
+	s := getServer(protocol)
 	s.Init()
-	s.Logger = s.GetLogger()
-	s.Logger.Init()
+	s.GetLogger().Init()
 	fmt.Println(s.Listen())
 }
