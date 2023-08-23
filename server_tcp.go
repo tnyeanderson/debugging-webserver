@@ -49,6 +49,7 @@ func (s *TCPServer) Listen() error {
 		go func(c net.Conn) {
 			// Echo all incoming data.
 			io.Copy(s.GetLogger(), c)
+			s.GetLogger().Write([]byte("\r\n"))
 			// Shut down the connection.
 			c.Close()
 		}(conn)
