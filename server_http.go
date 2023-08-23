@@ -9,16 +9,8 @@ type HTTPServer struct {
 	TCPServer
 }
 
-func (s *HTTPServer) Init() {
-	s.TCPServer.Init()
-	s.Logger = s.decideLogger()
-}
-
-func (s *HTTPServer) GetLogger() Logger {
-	if s.Logger != nil {
-		return s.Logger
-	}
-	return s.decideLogger()
+func (s *HTTPServer) Init(l Logger) {
+	s.TCPServer.Init(l)
 }
 
 func (s *HTTPServer) Listen() error {
@@ -30,14 +22,5 @@ func (s *HTTPServer) Listen() error {
 func (s *HTTPServer) Handler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		s.GetLogger().WriteRequest(r)
-	}
-}
-
-func (s *HTTPServer) decideLogger() Logger {
-	switch s.LogFormat {
-	case "json":
-		return NewJSONLogger()
-	default:
-		return NewPrettyLogger()
 	}
 }

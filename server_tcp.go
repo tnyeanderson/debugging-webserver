@@ -13,22 +13,17 @@ const (
 )
 
 type TCPServer struct {
-	LogFormat string
-	Logger    Logger
-	Port      string
+	Logger Logger
+	Port   string
 }
 
-func (s *TCPServer) Init() {
-	s.LogFormat = os.Getenv("FLIES_LOG_FORMAT")
+func (s *TCPServer) Init(l Logger) {
 	s.Port = os.Getenv("FLIES_PORT")
-	s.Logger = s.GetLogger()
+	s.Logger = l
 }
 
 func (s *TCPServer) GetLogger() Logger {
-	if s.Logger != nil {
-		return s.Logger
-	}
-	return NewDefaultLogger()
+	return s.Logger
 }
 
 func (s *TCPServer) Listen() error {

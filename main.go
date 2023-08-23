@@ -23,10 +23,21 @@ func getServer(protocol string) Server {
 	}
 }
 
+func getLogger(logFormat string) Logger {
+	switch logFormat {
+	case "json":
+		return NewJSONLogger()
+	default:
+		return NewPrettyLogger()
+	}
+}
+
 func main() {
 	protocol := os.Getenv("FLIES_PROTOCOL")
+	logFormat := os.Getenv("FLIES_LOG_FORMAT")
+	l := getLogger(logFormat)
+	l.Init()
 	s := getServer(protocol)
-	s.Init()
-	s.GetLogger().Init()
+	s.Init(l)
 	fmt.Println(s.Listen())
 }
