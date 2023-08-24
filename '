@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"io"
+	"log"
 	"net"
+	"net/http"
 	"os"
 )
 
@@ -12,40 +16,51 @@ const (
 )
 
 type TCPServer struct {
-	Port string
+	Logger Logger
+	Port   string
 }
 
-func (s *TCPServer) Init() {
+func (s *TCPServer) Init(l Logger) {
 	s.Port = os.Getenv("FLIES_PORT")
+	s.Logger = l
 }
 
-func (s *TCPServer) Listen(out, errOut io.Writer) error {
+func (s *TCPServer) GetLogger() Logger {
+	return s.Logger
+}
+
+func (s *TCPServer) Listen(forwardTo ...io.Writer) error {
 	l, err := net.Listen("tcp", s.getAddr())
 	if err != nil {
-		s.writeError(errOut, err)
+		log.Fatal(err)
 	}
 	defer l.Close()
 	for {
 		// Wait for a connection.
 		conn, err := l.Accept()
 		if err != nil {
-			s.writeError(errOut, err)
+			log.Fatal(err)
 		}
 		// Handle the connection in a new goroutine.
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
 		go func(c net.Conn) {
-			io.Copy(out, c)
+			w := io.MultiWriter(forwardTo...)
+			t := io.TeeReader(t, w)
+			t = io.TeeReader(c, s.GetLogger())
+			r, err := http.ReadRequest(bufio.NewReader(t))
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println(r)
+			// Echo all incoming data.
+			//io.Copy(s.GetLogger(), c)
+			//s.GetLogger().Write([]byte("\r\n"))
+			// Shut down the connection.
 			c.Close()
 		}(conn)
 	}
 	return err
-}
-
-func (s *TCPServer) writeError(out io.Writer, err error) error {
-	out.Write([]byte(err.Error()))
-	out.Write([]byte("\n"))
-	return nil
 }
 
 func (s *TCPServer) getAddr() string {

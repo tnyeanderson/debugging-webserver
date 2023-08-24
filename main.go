@@ -14,30 +14,13 @@ const defaultBanner = `
  |_| |_|_|\___||___/
 `
 
-func getServer(protocol string) Server {
-	switch protocol {
-	case "tcp":
-		return &TCPServer{}
-	default:
-		return &HTTPServer{}
-	}
-}
-
-func getLogger(logFormat string) Logger {
-	switch logFormat {
-	case "json":
-		return NewJSONLogger()
-	default:
-		return NewPrettyLogger()
-	}
-}
-
 func main() {
-	protocol := os.Getenv("FLIES_PROTOCOL")
-	logFormat := os.Getenv("FLIES_LOG_FORMAT")
-	l := getLogger(logFormat)
-	l.Init()
-	s := getServer(protocol)
-	s.Init(l)
-	fmt.Println(s.Listen())
+	s := &TCPServer{}
+	s.Init()
+	out := os.Stdout
+	errOut := os.Stdout
+	w := MultiRequestWriter(errOut, NewRequestWriterPretty(out))
+	//w := MultiRequestWriter(errOut, NewRequestWriterJSON(out), NewRequestWriter("---", out))
+	//w := MultiRequestWriter(errOut, NewRequestWriter("---", out))
+	fmt.Println(s.Listen(w, errOut))
 }

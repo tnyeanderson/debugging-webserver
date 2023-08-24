@@ -19,8 +19,8 @@ func mockTimestamp() time.Time {
 	return testTimestamp
 }
 
-func testLoggerInit(l *DefaultLogger) {
-	l.getTimestamp = mockTimestamp
+func testRequestWriterInit(w *DefaultRequestWriter) {
+	w.getTimestamp = mockTimestamp
 }
 
 func newTestRequest() *http.Request {

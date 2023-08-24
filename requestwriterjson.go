@@ -10,33 +10,6 @@ import (
 	"time"
 )
 
-// JSONLogger logs the result in JSON format
-type JSONLogger struct {
-	DefaultLogger
-}
-
-func NewJSONLogger() *JSONLogger {
-	return &JSONLogger{
-		DefaultLogger: *NewDefaultLogger(),
-	}
-}
-
-func (l *JSONLogger) Init() error { return nil }
-
-func (l *JSONLogger) WriteRequest(r *http.Request) error {
-	l.defaultLoggerWriteHook()
-	return l.writeRequestJSON(r)
-}
-
-func (l *JSONLogger) writeRequestJSON(r *http.Request) error {
-	req := newRequest(r, l.getTimestamp())
-	req.TotalRequests = l.TotalRequests
-	b, _ := json.Marshal(req)
-	l.Write(b)
-	l.writeNewline()
-	return nil
-}
-
 // request is the JSON representation of a request
 type request struct {
 	Wire          []byte      `json:"wire"`
@@ -79,4 +52,24 @@ func newRequest(r *http.Request, timestamp time.Time) *request {
 	req.QueryParams = queryParams
 
 	return &req
+}
+
+type RequestWriterJSON struct {
+	DefaultRequestWriter
+}
+
+func NewRequestWriterJSON(out io.Writer) *RequestWriterJSON {
+	return &RequestWriterJSON{
+		DefaultRequestWriter: *NewRequestWriter("", out),
+	}
+}
+
+func (w *RequestWriterJSON) WriteRequest(r *http.Request) error {
+	w.TotalRequests++
+	req := newRequest(r, w.getTimestamp())
+	req.TotalRequests = w.TotalRequests
+	b, _ := json.Marshal(req)
+	w.Out.Write(b)
+	w.Out.Write([]byte("\n"))
+	return nil
 }
