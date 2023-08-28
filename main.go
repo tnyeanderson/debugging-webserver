@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -14,13 +15,22 @@ const defaultBanner = `
  |_| |_|_|\___||___/
 `
 
+func getRequestWriter(out io.Writer) RequestWriter {
+	switch os.Getenv("FLIES_LOG_FORMAT") {
+	case "json":
+		return NewRequestWriterJSON(out)
+	case "raw":
+		return NewRequestWriter("\n", out)
+	default:
+		return NewRequestWriterPretty(out)
+	}
+}
+
 func main() {
 	s := &TCPServer{}
 	s.Init()
 	out := os.Stdout
-	errOut := os.Stdout
-	w := MultiRequestWriter(errOut, NewRequestWriterPretty(out))
-	//w := MultiRequestWriter(errOut, NewRequestWriterJSON(out), NewRequestWriter("---", out))
-	//w := MultiRequestWriter(errOut, NewRequestWriter("---", out))
+	errOut := os.Stderr
+	w := MultiRequestWriter(errOut, getRequestWriter(out))
 	fmt.Println(s.Listen(w, errOut))
 }

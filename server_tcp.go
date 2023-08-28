@@ -11,18 +11,22 @@ const (
 	defaultPort      = "8080"
 )
 
+// TCPServer is the default Server used by flies.
 type TCPServer struct {
 	Port string
 }
 
+// Init sets up a TCPServer based on the FLIES_PORT environment variable.
 func (s *TCPServer) Init() {
 	s.Port = os.Getenv("FLIES_PORT")
 }
 
+// Listen writes any data received on the TCP connection to the provided
+// io.Writer, and writes any errors (followed by a newline) to errOut.
 func (s *TCPServer) Listen(out, errOut io.Writer) error {
 	l, err := net.Listen("tcp", s.getAddr())
 	if err != nil {
-		s.writeError(errOut, err)
+		return err
 	}
 	defer l.Close()
 	for {
@@ -35,7 +39,10 @@ func (s *TCPServer) Listen(out, errOut io.Writer) error {
 		// The loop then returns to accepting, so that
 		// multiple connections may be served concurrently.
 		go func(c net.Conn) {
-			io.Copy(out, c)
+			_, err := io.Copy(out, c)
+			if err != nil {
+				s.writeError(errOut, err)
+			}
 			c.Close()
 		}(conn)
 	}

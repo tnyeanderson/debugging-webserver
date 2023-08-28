@@ -9,6 +9,6 @@ type Server interface {
 	Init()
 
 	// Listen starts a server and writes any data it receives to out. If an error
-	// is received, it gets written to errOut.
+	// is received, it should be written to errOut, followed by a newline.
 	Listen(out, errOut io.Writer) error
 }

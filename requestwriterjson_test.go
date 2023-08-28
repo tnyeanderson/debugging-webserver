@@ -20,10 +20,9 @@ func ExampleFliesLogJSON() {
 func TestJSONWriteRequestOnePerLine(t *testing.T) {
 	out := &strings.Builder{}
 	w := NewRequestWriterJSON(out)
-	req := newTestRequest()
-	w.WriteRequest(req)
-	w.WriteRequest(req)
-	w.WriteRequest(req)
+	w.WriteRequest(newTestRequest())
+	w.WriteRequest(newTestRequest())
+	w.WriteRequest(newTestRequest())
 
 	if strings.Count(out.String(), "\n") != 3 {
 		t.Fail()
@@ -32,10 +31,9 @@ func TestJSONWriteRequestOnePerLine(t *testing.T) {
 
 func TestJSONLoggerRequestIncrementsTotal(t *testing.T) {
 	w := NewRequestWriterJSON(io.Discard)
-	req := newTestRequest()
-	w.WriteRequest(req)
-	w.WriteRequest(req)
-	w.WriteRequest(req)
+	w.WriteRequest(newTestRequest())
+	w.WriteRequest(newTestRequest())
+	w.WriteRequest(newTestRequest())
 
 	if w.TotalRequests != 3 {
 		t.Fail()

@@ -4,11 +4,35 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
 )
+
+// RequestWriterJSON is a RequestWriter that writes each http.Request in JSON
+// format. Each request is written as a single line.
+type RequestWriterJSON struct {
+	DefaultRequestWriter
+}
+
+// NewRequestWriterJSON returns an initialized RequestWriterJSON.
+func NewRequestWriterJSON(out io.Writer) *RequestWriterJSON {
+	return &RequestWriterJSON{
+		DefaultRequestWriter: *NewRequestWriter("", out),
+	}
+}
+
+// WriteRequest increments TotalRequests and writes the request in one-line
+// JSON format, followed by a newline character.
+func (w *RequestWriterJSON) WriteRequest(r *http.Request) error {
+	w.TotalRequests++
+	req := newRequest(r, w.getTimestamp())
+	req.TotalRequests = w.TotalRequests
+	b, _ := json.Marshal(req)
+	w.Out.Write(b)
+	w.Out.Write([]byte("\n"))
+	return nil
+}
 
 // request is the JSON representation of a request
 type request struct {
@@ -34,15 +58,21 @@ func newRequest(r *http.Request, timestamp time.Time) *request {
 	req.ReceivedAt = timestamp.Unix()
 	req.Headers = r.Header
 
-	// Read the body into both Wire and Body
+	if _, ok := r.Body.(*BodyReader); !ok {
+		r.Body = NewBodyReader(r.Body)
+	}
+
 	wireBuffer := &bytes.Buffer{}
-	bodyBuffer := &bytes.Buffer{}
-	r.Body = ioutil.NopCloser(io.TeeReader(r.Body, bodyBuffer))
 	if err := r.Write(wireBuffer); err != nil {
 		req.Errors = append(req.Errors, err.Error())
 	}
-	req.Body = bodyBuffer.Bytes()
 	req.Wire = wireBuffer.Bytes()
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		req.Errors = append(req.Errors, err.Error())
+	}
+	req.Body = b
 
 	// Parse query parameters
 	queryParams, err := url.ParseQuery(req.Query)
@@ -52,24 +82,4 @@ func newRequest(r *http.Request, timestamp time.Time) *request {
 	req.QueryParams = queryParams
 
 	return &req
-}
-
-type RequestWriterJSON struct {
-	DefaultRequestWriter
-}
-
-func NewRequestWriterJSON(out io.Writer) *RequestWriterJSON {
-	return &RequestWriterJSON{
-		DefaultRequestWriter: *NewRequestWriter("", out),
-	}
-}
-
-func (w *RequestWriterJSON) WriteRequest(r *http.Request) error {
-	w.TotalRequests++
-	req := newRequest(r, w.getTimestamp())
-	req.TotalRequests = w.TotalRequests
-	b, _ := json.Marshal(req)
-	w.Out.Write(b)
-	w.Out.Write([]byte("\n"))
-	return nil
 }
