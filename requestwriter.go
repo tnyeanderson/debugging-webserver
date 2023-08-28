@@ -12,8 +12,8 @@ import (
 // The common use case is to daisy chain RequestWriters into a
 // MultiRequestWriter, which automatically wraps the Body of the http.Request
 // to a BodyReader. If calling multiple RequestWriters on the same request
-// without using MultiRequestWriter and need to be able to read the Body more
-// than once, be sure to use a BodyReader.
+// without using MultiRequestWriter and they need to be able to read the Body
+// more than once, be sure to use a BodyReader.
 type RequestWriter interface {
 	// WriteRequest writes a single request to the log, along with any
 	// prefix/suffix/transformation as defined by the RequestLogger.
