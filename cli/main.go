@@ -3,10 +3,12 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/tnyeanderson/flies"
 )
@@ -41,6 +43,8 @@ func getRequestWriter(out io.Writer) flies.RequestWriter {
 		}
 		return flies.NewRequestWriterTemplate(out, tmpl)
 	default:
+		fmt.Fprintln(out, defaultBanner)
+		fmt.Fprintln(out, strings.Repeat("+", 80))
 		return flies.NewRequestWriterPretty(out)
 	}
 }
