@@ -3,8 +3,9 @@
 package main
 
 import (
-	"fmt"
+	"html/template"
 	"io"
+	"log"
 	"os"
 
 	"github.com/tnyeanderson/flies"
@@ -20,11 +21,25 @@ const defaultBanner = `
 `
 
 func getRequestWriter(out io.Writer) flies.RequestWriter {
-	switch os.Getenv("FLIES_LOG_FORMAT") {
+	switch os.Getenv("FLIES_FORMAT") {
 	case "json":
 		return flies.NewRequestWriterJSON(out)
 	case "raw":
 		return flies.NewRequestWriter("\n", out)
+	case "template":
+		templateFile := os.Getenv("FLIES_TEMPLATE")
+		if templateFile == "" {
+			log.Fatal("FLIES_TEMPLATE_FILE must be set if FLIES_FORMAT=template")
+		}
+		templateText, err := os.ReadFile(templateFile)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		tmpl, err := template.New("").Parse(string(templateText))
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		return flies.NewRequestWriterTemplate(out, tmpl)
 	default:
 		return flies.NewRequestWriterPretty(out)
 	}
@@ -36,5 +51,8 @@ func main() {
 	out := os.Stdout
 	errOut := os.Stderr
 	w := flies.MultiRequestWriter(errOut, getRequestWriter(out))
-	fmt.Println(s.Listen(w, errOut))
+	err := s.Listen(w, errOut)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
