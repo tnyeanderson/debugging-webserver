@@ -26,7 +26,7 @@ func getRequestWriter(out io.Writer) flies.RequestWriter {
 	switch os.Getenv("FLIES_FORMAT") {
 	case "json":
 		return flies.NewRequestWriterJSON(out)
-	case "raw":
+	case "pipe":
 		return flies.NewRequestWriter("\n", out)
 	case "template":
 		return getTemplateWriter(out)
@@ -56,10 +56,26 @@ func getTemplateWriter(out io.Writer) *flies.RequestWriterTemplate {
 func main() {
 	s := &flies.TCPServer{}
 	s.Init()
-	out := os.Stdout
 	errOut := os.Stderr
-	w := flies.MultiRequestWriter(errOut, getRequestWriter(out))
-	err := s.Listen(w, errOut)
+	rawOut := io.Discard
+	reqOut := os.Stdout
+
+	var reqWriter flies.RequestWriter
+	if os.Getenv("FLIES_RAW") != "" {
+		rawOut = os.Stdout
+		reqWriter = &flies.RequestWriterDiscard{}
+	} else {
+		reqWriter = flies.NewMultiRequestWriter(
+			errOut,
+			getRequestWriter(reqOut),
+		)
+	}
+
+	err := s.Listen(
+		errOut,
+		rawOut,
+		reqWriter,
+	)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

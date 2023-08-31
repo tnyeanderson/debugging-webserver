@@ -8,7 +8,8 @@ type Server interface {
 	// variables, or prompting the user for information.
 	Init()
 
-	// Listen starts a server and writes any data it receives to out. If an error
-	// is received, it should be written to errOut, followed by a newline.
-	Listen(out, errOut io.Writer) error
+	// Listen writes any data received by the server to rawWriter, and writes any
+	// errors (followed by a newline) to errWriter. The request is parsed, and
+	// passed to reqWriter.
+	Listen(errWriter, rawWriter io.Writer, reqWriter RequestWriter) error
 }
