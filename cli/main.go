@@ -29,24 +29,28 @@ func getRequestWriter(out io.Writer) flies.RequestWriter {
 	case "raw":
 		return flies.NewRequestWriter("\n", out)
 	case "template":
-		templateFile := os.Getenv("FLIES_TEMPLATE")
-		if templateFile == "" {
-			log.Fatal("FLIES_TEMPLATE_FILE must be set if FLIES_FORMAT=template")
-		}
-		templateText, err := os.ReadFile(templateFile)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		tmpl, err := template.New("").Parse(string(templateText))
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		return flies.NewRequestWriterTemplate(out, tmpl)
+		return getTemplateWriter(out)
 	default:
 		fmt.Fprintln(out, defaultBanner)
 		fmt.Fprintln(out, strings.Repeat("+", 80))
 		return flies.NewRequestWriterPretty(out)
 	}
+}
+
+func getTemplateWriter(out io.Writer) *flies.RequestWriterTemplate {
+	templateFile := os.Getenv("FLIES_TEMPLATE")
+	if templateFile == "" {
+		log.Fatal("FLIES_TEMPLATE_FILE must be set if FLIES_FORMAT=template")
+	}
+	templateText, err := os.ReadFile(templateFile)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	tmpl, err := template.New("").Parse(string(templateText))
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	return flies.NewRequestWriterTemplate(out, tmpl)
 }
 
 func main() {
