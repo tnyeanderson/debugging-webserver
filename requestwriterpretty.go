@@ -8,8 +8,9 @@ import (
 	"time"
 )
 
-// RequestWriterPretty is like DefaultLogger, but it also prints a separator between
-// requests containing the timestamp and TotalRequests
+// RequestWriterPretty is like [DefaultRequestWriter], but it also prints a
+// separator between requests containing the timestamp and number of requests
+// received.
 type RequestWriterPretty struct {
 	DefaultRequestWriter
 
@@ -18,7 +19,7 @@ type RequestWriterPretty struct {
 	Width int
 }
 
-// NewRequestWriterPretty returns an initialized RequestWriterPretty.
+// NewRequestWriterPretty returns an initialized [RequestWriterPretty].
 func NewRequestWriterPretty(out io.Writer) *RequestWriterPretty {
 	return &RequestWriterPretty{
 		DefaultRequestWriter: *NewRequestWriter("", out),
@@ -26,7 +27,7 @@ func NewRequestWriterPretty(out io.Writer) *RequestWriterPretty {
 	}
 }
 
-// Write requests increments TotalRequests, writes the separator banner
+// WriteRequest increments the request counter, writes the separator banner
 // including the timestamp of the request and the amount of requests received,
 // then writes the request in wire format.
 func (w *RequestWriterPretty) WriteRequest(r *http.Request) error {

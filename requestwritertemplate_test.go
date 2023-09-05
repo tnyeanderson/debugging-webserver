@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func ExampleFliesLogTemplate() {
+func ExampleRequestWriterTemplate() {
 	tmpl, _ := template.New("").Parse("{{.ReceivedAt}} | {{.Method}} {{.Path}}")
 	w := NewRequestWriterTemplate(os.Stdout, tmpl)
 	testRequestWriterInit(&w.DefaultRequestWriter)

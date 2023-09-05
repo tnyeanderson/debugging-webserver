@@ -19,8 +19,7 @@ const defaultBanner = `
  | |_| |_  ___  ___ 
  |  _| | |/ _ \/ __|
  | | | | |  __/\__ \
- |_| |_|_|\___||___/
-`
+ |_| |_|_|\___||___/ `
 
 func getRequestWriter(out io.Writer) flies.RequestWriter {
 	switch os.Getenv("FLIES_FORMAT") {
@@ -54,28 +53,24 @@ func getTemplateWriter(out io.Writer) *flies.RequestWriterTemplate {
 }
 
 func main() {
-	s := &flies.TCPServer{}
-	s.Init()
-	errOut := os.Stderr
-	rawOut := io.Discard
 	reqOut := os.Stdout
+	s := &flies.Server{
+		ErrWriter: os.Stderr,
+		RawWriter: io.Discard,
+	}
+	s.Init()
 
-	var reqWriter flies.RequestWriter
 	if os.Getenv("FLIES_RAW") != "" {
-		rawOut = os.Stdout
-		reqWriter = &flies.RequestWriterDiscard{}
+		s.RawWriter = os.Stdout
+		s.ReqWriter = &flies.RequestWriterDiscard{}
 	} else {
-		reqWriter = flies.NewMultiRequestWriter(
-			errOut,
+		s.ReqWriter = flies.NewMultiRequestWriter(
+			s.ErrWriter,
 			getRequestWriter(reqOut),
 		)
 	}
 
-	err := s.Listen(
-		errOut,
-		rawOut,
-		reqWriter,
-	)
+	err := s.Listen()
 	if err != nil {
 		log.Fatal(err.Error())
 	}

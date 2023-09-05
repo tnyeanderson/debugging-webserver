@@ -2,7 +2,7 @@ package flies
 
 import "net/http"
 
-// RequestWriterDiscard is a no-op RequestWriter.
+// RequestWriterDiscard is a no-op [RequestWriter].
 type RequestWriterDiscard struct{}
 
 // WriteRequest is a no-op.

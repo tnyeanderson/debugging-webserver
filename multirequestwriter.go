@@ -5,33 +5,33 @@ import (
 	"net/http"
 )
 
-// MultiRequestWriter is a RequestWriter that calls multiple RequestWriters
-// sequentially with the same request. Any errors will be written to errWriter,
+// MultiRequestWriter is a [RequestWriter] that calls each of the Writers
+// sequentially with the same request. Any errors will be written to ErrWriter,
 // followed by a newline.
 type MultiRequestWriter struct {
-	// writers is the list of RequestWriters which will be called sequentially.
-	writers []RequestWriter
+	// Writers is the list of RequestWriters which will be called sequentially.
+	Writers []RequestWriter
 
-	// errorWriter is where errors will be written. Leave nil to return instead,
-	// bypassing all subsequent RequestWriters.
-	errWriter *io.Writer
+	// ErrorWriter is where errors will be written. Leave nil to return instead,
+	// bypassing all subsequent Writers.
+	ErrWriter *io.Writer
 }
 
-// WriteRequest calls each RequestWriter in the writers slice sequentially with
-// the same request. Any errors will be written to errWriter, followed by a
-// newline.
+// WriteRequest calls each [RequestWriter] in the Writers slice sequentially
+// with the same request. Any errors will be written to ErrWriter, followed by
+// a newline.
 //
-// If the Body of the http.Request is not already a BodyReader, it will be
+// If the [http.Request.Body] is not already a [BodyReader], it will be
 // replaced with one first.
 func (r *MultiRequestWriter) WriteRequest(req *http.Request) error {
 	if _, ok := req.Body.(*BodyReader); !ok {
 		req.Body = NewBodyReader(req.Body)
 	}
-	for _, w := range r.writers {
+	for _, w := range r.Writers {
 		err := w.WriteRequest(req)
 		if err != nil {
-			if r.errWriter != nil {
-				writeError(*r.errWriter, err)
+			if r.ErrWriter != nil {
+				writeError(*r.ErrWriter, err)
 				continue
 			}
 			return err
@@ -40,11 +40,11 @@ func (r *MultiRequestWriter) WriteRequest(req *http.Request) error {
 	return nil
 }
 
-// NewMultiRequestWriter returns an initialized MultiRequestWriter.
+// NewMultiRequestWriter returns an initialized [MultiRequestWriter].
 func NewMultiRequestWriter(errWriter io.Writer, writers ...RequestWriter) RequestWriter {
 	return &MultiRequestWriter{
-		writers:   writers,
-		errWriter: &errWriter,
+		Writers:   writers,
+		ErrWriter: &errWriter,
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func ExampleFliesLogJSON() {
+func ExampleRequestWriterJSON() {
 	w := NewRequestWriterJSON(os.Stdout)
 	testRequestWriterInit(&w.DefaultRequestWriter)
 	req := newTestRequest()

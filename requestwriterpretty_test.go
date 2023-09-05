@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ExampleFliesLogPretty() {
+func ExampleRequestWriterPretty() {
 	buf := &bytes.Buffer{}
 	w := NewRequestWriterPretty(buf)
 	testRequestWriterInit(&w.DefaultRequestWriter)

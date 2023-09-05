@@ -9,21 +9,21 @@ import (
 	"time"
 )
 
-// RequestWriterJSON is a RequestWriter that writes each http.Request in JSON
-// format. Each request is written as a single line.
+// RequestWriterJSON is a [RequestWriter] that writes each [http.Request] in
+// JSON format. Each request is written as a single line.
 type RequestWriterJSON struct {
 	DefaultRequestWriter
 }
 
-// NewRequestWriterJSON returns an initialized RequestWriterJSON.
+// NewRequestWriterJSON returns an initialized [RequestWriterJSON].
 func NewRequestWriterJSON(out io.Writer) *RequestWriterJSON {
 	return &RequestWriterJSON{
 		DefaultRequestWriter: *NewRequestWriter("", out),
 	}
 }
 
-// WriteRequest increments TotalRequests and writes the request in one-line
-// JSON format, followed by a newline character.
+// WriteRequest increments the request counter and writes the request in
+// one-line JSON format, followed by a newline character.
 func (w *RequestWriterJSON) WriteRequest(r *http.Request) error {
 	w.TotalRequests++
 	req := newRequest(r, w.getTimestamp())
@@ -34,7 +34,7 @@ func (w *RequestWriterJSON) WriteRequest(r *http.Request) error {
 	return nil
 }
 
-// request is the JSON representation of a request
+// request is the JSON representation of an [http.Request]
 type request struct {
 	Wire          []byte      `json:"wire"`
 	Body          []byte      `json:"body"`
