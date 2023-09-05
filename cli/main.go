@@ -1,5 +1,3 @@
-// Command flies provides a webserver which produces detailed logs of each
-// request it receives.
 package main
 
 import (
@@ -8,6 +6,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/tnyeanderson/flies"
@@ -37,7 +36,7 @@ func getRequestWriter(out io.Writer) flies.RequestWriter {
 }
 
 func getTemplateWriter(out io.Writer) *flies.RequestWriterTemplate {
-	templateFile := os.Getenv("FLIES_TEMPLATE")
+	templateFile := os.Getenv("FLIES_TEMPLATE_FILE")
 	if templateFile == "" {
 		log.Fatal("FLIES_TEMPLATE_FILE must be set if FLIES_FORMAT=template")
 	}
@@ -52,12 +51,22 @@ func getTemplateWriter(out io.Writer) *flies.RequestWriterTemplate {
 	return flies.NewRequestWriterTemplate(out, tmpl)
 }
 
+func getServer() *Server {
+	responseCode, _ := strconv.Atoi(os.Getenv("FLIES_RESPONSE_STATUS_CODE"))
+
+	return &flies.Server{
+		ErrWriter:           os.Stderr,
+		RawWriter:           io.Discard,
+		Port:                os.Getenv("FLIES_PORT"),
+		ResponseStatus:      os.Getenv("FLIES_RESPONSE_STATUS"),
+		ResponseBodyContent: os.Getenv("FLIES_RESPONSE_BODY_CONTENT"),
+		ResponseStatusCode:  responseCode,
+	}
+}
+
 func main() {
 	reqOut := os.Stdout
-	s := &flies.Server{
-		ErrWriter: os.Stderr,
-		RawWriter: io.Discard,
-	}
+	s := getServer()
 	s.Init()
 
 	if os.Getenv("FLIES_RAW") != "" {

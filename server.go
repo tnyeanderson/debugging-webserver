@@ -6,8 +6,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"os"
-	"strconv"
 )
 
 const (
@@ -17,7 +15,7 @@ const (
 	defaultResponseStatusCode = 421
 )
 
-// Server is the TCP Server used by flies.
+// Server is the TCP Server used by [flies].
 type Server struct {
 	Port                string
 	ResponseStatus      string
@@ -26,19 +24,6 @@ type Server struct {
 	ErrWriter           io.Writer
 	RawWriter           io.Writer
 	ReqWriter           RequestWriter
-}
-
-// Init sets up a [Server] based on environment variables.
-func (s *Server) Init() {
-	s.Port = os.Getenv("FLIES_PORT")
-
-	s.ResponseStatus = os.Getenv("FLIES_RESPONSE_STATUS")
-
-	if rc, err := strconv.Atoi(os.Getenv("FLIES_RESPONSE_STATUS_CODE")); err == nil {
-		s.ResponseStatusCode = rc
-	}
-
-	s.ResponseBodyContent = os.Getenv("FLIES_RESPONSE_BODY_CONTENT")
 }
 
 // Listen writes any data received on the TCP connection to RawWriter, and
