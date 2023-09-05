@@ -24,7 +24,7 @@ func getRequestWriter(out io.Writer) flies.RequestWriter {
 	switch os.Getenv("FLIES_FORMAT") {
 	case "json":
 		return flies.NewRequestWriterJSON(out)
-	case "pipe":
+	case "wire":
 		return flies.NewRequestWriter("\n", out)
 	case "template":
 		return getTemplateWriter(out)

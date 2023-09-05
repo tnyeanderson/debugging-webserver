@@ -3,7 +3,7 @@
 //
 // The following environment variables are available to configure flies:
 //
-//    FLIES_FORMAT                Can be "json", "pipe", or "template". Default is "pretty".
+//    FLIES_FORMAT                Can be "json", "wire", or "template". Default is "pretty".
 //    FLIES_TEMPLATE_FILE         Path to template used for "template" format.
 //    FLIES_RAW                   Show the raw TCP output only.
 //    FLIES_PORT                  Port that the server should listen on.
